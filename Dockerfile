@@ -10,7 +10,7 @@ RUN Rscript -e "install.packages(c('shiny'), repos='https://cran.rstudio.com/')"
 COPY server.R /srv/shiny-server/
 COPY functions.R /srv/shiny-server/
 COPY ui.R /srv/shiny-server/
-COPY summaryData.rds /srv/shiny-server/
+COPY *.rds /srv/shiny-server/
 CMD ["/usr/bin/shiny-server.sh"]
 # docker build -t mi/shiny-onto:test .
 # docker run -d -p 3840:3838 mi/shiny-onto:test

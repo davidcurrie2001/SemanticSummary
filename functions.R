@@ -76,7 +76,7 @@ LoadSpeciesList<- function(fileName){
   }
   # else run a sparql query
   else {
-    print("Running sparql query")
+
     # get our list of species for a drop down list
     r <- runSparql('
                    SELECT ?species ?name ?prefLabel (Str(?commonName) as ?CommonName) (sum(xsd:double(?lengths)) as ?lengthCount)
@@ -310,7 +310,7 @@ LoadSummaryData <-function(fileName){
   
   # Try reading from an RDS file if a filename is given
   if (fileName!= ""){
-    print(fileName)  
+ 
     output<-readRDS(file = fileName)
     
   }
