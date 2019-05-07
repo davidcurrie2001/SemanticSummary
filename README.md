@@ -1,2 +1,2 @@
 # SemanticSummary
-Semantically enabled summary of commercial fisheries data
+Shiny app which displays a semantically-enabled summary of commercial fisheries data
