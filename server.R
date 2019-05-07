@@ -364,7 +364,7 @@ shinyServer(function(input, output, session) {
       
       IC_speciesnames<-unique(na.omit(summaryData[,c("CommonName","ICspecies")]))
       
-      ThreeLetterCode<-trimIRI(IC_speciesnames[IC_speciesnames$CommonName=="Cod","ICspecies"])
+      ThreeLetterCode<-trimIRI(IC_speciesnames[IC_speciesnames$CommonName==selectedSpecies,"ICspecies"])
       
       if(length(ThreeLetterCode)>0){
         speciesDashURL<-paste(speciesDashURL,"?species=",ThreeLetterCode,sep="")
