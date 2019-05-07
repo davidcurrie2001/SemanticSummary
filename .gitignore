@@ -3,4 +3,5 @@
 .RData
 .Ruserdata
 MyOntologyData.rdf
+summaryData.rds
 copyFilesToServer.bat
