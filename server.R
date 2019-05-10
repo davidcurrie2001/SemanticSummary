@@ -55,7 +55,6 @@ shinyServer(function(input, output, session) {
   # Finished loading data
   removeModal()
 
-  
   DefaultText <- "(Any)"
   
   
@@ -152,6 +151,9 @@ shinyServer(function(input, output, session) {
   selectedWG <- input$WGSelect
   selectedGear <- input$GearSelect
   
+  stockbookURL<-"https://shiny.marine.ie/stockbook?stock="
+  icesGroupsURL<- "https://www.ices.dk/community/groups/Pages/"
+  
   # If we have summaryData
   if(length(summaryData)>0){
     
@@ -160,9 +162,25 @@ shinyServer(function(input, output, session) {
       
   
     stockData$stock <- trimIRI(stockData$stock)
+    stockData$StockCode  <- stockData$stock
+    #stockData[is.na(stockData$StockCode),"StockCode"] <- ""
+
+    #stockData$StockCode <- paste("<a href='",stockbookURL,stockData$StockCode,"' target='_blank'  >",stockData$StockCode,"</a>",sep="")
+
     stockData$wg <- trimIRI(stockData$wg)
+    stockData$WorkingGroup <- stockData$wg
+
+    # Create the hyperlinks (if we have data)
+    if(nrow(stockData)>0){
+      stockData$StockCode <- paste("<a href='",stockbookURL,stockData$StockCode,"' target='_blank'  >",stockData$StockCode,"</a>",sep="")
+      stockData$WorkingGroup <-paste("<a href='",icesGroupsURL,stockData$WorkingGroup,".aspx' target='_blank'  >",stockData$WorkingGroup,"</a>",sep="")
+    }
+    
+    # Working group can sometimes be blank - need to handle this
+    #stockData$WorkingGroup <-paste("<a href='",icesGroupsURL,stockData$WorkingGroup,".aspx' target='_blank'  >",stockData$WorkingGroup,"</a>",sep="")
+
     # sort the data
-    stockData<-stockData[order(stockData$stock),c("stock","StockName","wg")]
+    stockData<-stockData[order(stockData$stock),c("StockCode","StockName","WorkingGroup")]
     # if we are not showing the division field it will look liek we have duplicate stock names so use unique
     stockData<-unique(stockData)
   
@@ -170,7 +188,7 @@ shinyServer(function(input, output, session) {
     
   }
 
-  }, options = list(pageLength = 5))
+  }, options = list(pageLength = 5),escape=FALSE)
   
   # Display summary data table
   output$SummaryDataTable <- renderDataTable({
