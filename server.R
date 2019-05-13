@@ -302,8 +302,25 @@ shinyServer(function(input, output, session) {
       
       selectedSpecies <- speciesInfoFrame[speciesInfoFrame$CommonName==input$SpeciesSelect,]
       if (length(selectedSpecies)>0){
+        
+        # Get the DPPedia abstract
         outputText <- selectedSpecies$Abstract
+        
+        # Get the DBPedia link
+        myLink <- selectedSpecies$origPage
+        myLink <- substring(myLink,2)
+        myLink <- substring(myLink,1,nchar(myLink)-1)
+        myLink<- paste('<a href="',myLink,'" target="_blank">',myLink,'</a>',sep='')
+        
+        outputText <- paste(selectedSpecies$Abstract,"<br/><b>Source:</b> ",myLink)
+        
       }
+      
+      
+      myLink <- selectedSpecies$page
+      myLink <- substring(myLink,2)
+      myLink <- substring(myLink,1,nchar(myLink)-1)
+      
 
     } 
     
@@ -335,37 +352,20 @@ shinyServer(function(input, output, session) {
     
   })
   
-  # try and get the DBpedia link
+  # Set the title
   output$title <- renderText({
     
     selectedSpecies <- input$SpeciesSelect
     
     outputText <- ""
-    myLink <-
-    
+
     if(selectedSpecies != DefaultText && selectedSpecies != ""){
       
       myTitle <- input$SpeciesSelect
-      
-      selectedSpecies <- speciesInfoFrame[speciesInfoFrame$CommonName==input$SpeciesSelect,]
-      
-      if (length(selectedSpecies)>0){
-        
-        myLink <- selectedSpecies$page
-        myLink <- substring(myLink,2)
-        myLink <- substring(myLink,1,nchar(myLink)-1)
-      
-      }
-      
-      if (length(myLink)>0){
-        outputText<- paste('<h2><a href="',myLink,'" target="_blank">',myTitle,'</a></h2>',sep='')
-      } else {
-        outputText<- paste('<h2>',myTitle,'</h2>',sep='')
-      }
-      
+
+      outputText<- paste('<h2>',myTitle,'</h2>',sep='')
+
     } 
-    
-  
     
     outputText
     
@@ -388,7 +388,7 @@ shinyServer(function(input, output, session) {
         speciesDashURL<-paste(speciesDashURL,"?species=",ThreeLetterCode,sep="")
       }
       
-      outputText<-paste('<a href="',speciesDashURL,'" target="_blank"> MI Species Dashboard link </a>',sep='')
+      outputText<-paste('<a href="',speciesDashURL,'" target="_blank"> Marine Institute Species Dashboard: ',selectedSpecies,'</a>',sep='')
 
     } 
     

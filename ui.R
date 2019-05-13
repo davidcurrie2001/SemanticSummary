@@ -31,7 +31,7 @@ shinyUI(
       htmlOutput("title"),
       htmlOutput("speciesdash"),
       htmlOutput("thumbnail"),
-      textOutput("abstract"),
+      htmlOutput("abstract"),
       plotlyOutput('SummaryPlot'),
       dataTableOutput('StockList'),
       dataTableOutput('SummaryDataTable')

@@ -40,7 +40,7 @@ runSparql<-function(mySpaqrl){
 getSpeciesInfoFromDBPedia<-function(sciName){
   
   # First part of sparql query
-  mySparql1 <- 'SELECT ?species (str(?name) as ?Name) ?image (str(?abstract) as ?Abstract) ?page ("'
+  mySparql1 <- 'SELECT ?species (str(?name) as ?Name) ?image (str(?abstract) as ?Abstract) ?page ?origPage ?map ("'
   
   # second part of sparql query
   mySparql2 <- '" as ?untypedName) WHERE
@@ -53,7 +53,9 @@ getSpeciesInfoFromDBPedia<-function(sciName){
   SERVICE <http://dbpedia.org/sparql> {
   ?species dbo:thumbnail ?image  .  
   ?species dbo:abstract ?abstract . 
-  OPTIONAL { ?species <http://xmlns.com/foaf/0.1/isPrimaryTopicOf> ?page }
+  OPTIONAL { ?species <http://xmlns.com/foaf/0.1/isPrimaryTopicOf> ?page . }
+  OPTIONAL { ?species <http://www.w3.org/ns/prov#wasDerivedFrom> ?origPage . }
+  OPTIONAL { ?species dbp:rangeMap ?map . }
   }
   FILTER (lang(?abstract) = "en")
   }
