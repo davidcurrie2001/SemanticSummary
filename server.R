@@ -20,11 +20,15 @@ shinyServer(function(input, output, session) {
   # IMPORTANT: Change this value to "true" if you want to load from a SPARQL end-point (define the address in functions.R)
   useLiveData<-"false"
 
+  output$About <- renderText({"This app displys a semantically-enabled summary of the Marine Institute's commercial fishery sampling data.  The source code can be found at <a href='https://github.com/davidcurrie2001/SemanticSummary' target='_blank'>davidcurrie2001/SemanticSummary</a>."})
+  
   # Load our data first
-  showModal(modalDialog("Please wait - loading data.
-                          This app displys a semantically-enabled summary of the Marine Institute's commercial fishery sampling data.", footer=NULL))
+
   
   if(useLiveData=="true"){
+    # Takes longer to load live data - show loading message
+    showModal(modalDialog("Please wait - loading data.", footer=NULL))
+    
     speciesForList <- LoadSpeciesList("")
     speciesInfoFrame <- LoadSpeciesInfoFrame(speciesForList$name,"")
     speciesInfoFrame <- merge(x=speciesForList, y=speciesInfoFrame, by.x="name", by.y="untypedName", all.x = FALSE)
@@ -36,6 +40,9 @@ shinyServer(function(input, output, session) {
     StatusFrame <- LoadConservationFrame("")
     StatusForList <- unique(StatusFrame[order(StatusFrame$statusLonger),c("statusLonger")])
     summaryData <- LoadSummaryData("")
+    
+    # Finished loading data
+    removeModal()
   } 
   # else load from RDS files
   else {
@@ -52,9 +59,6 @@ shinyServer(function(input, output, session) {
     summaryData <- LoadSummaryData("summaryData.rds")
   }
   
-  # Finished loading data
-  removeModal()
-
   DefaultText <- "(Any)"
   
   
