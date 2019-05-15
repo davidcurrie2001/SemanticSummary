@@ -13,4 +13,4 @@ COPY ui.R /srv/shiny-server/
 COPY *.rds /srv/shiny-server/
 CMD ["/usr/bin/shiny-server.sh"]
 # docker build -t mi/shiny-onto:test .
-# docker run -d -p 3840:3838 mi/shiny-onto:test
+# docker run --name shiny-onto -d -p 3840:3838 mi/shiny-onto:test
