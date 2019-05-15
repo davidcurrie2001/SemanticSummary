@@ -40,6 +40,8 @@ shinyServer(function(input, output, session) {
     StatusFrame <- LoadConservationFrame("")
     StatusForList <- unique(StatusFrame[order(StatusFrame$statusLonger),c("statusLonger")])
     summaryData <- LoadSummaryData("")
+    fishRedListFrame<-LoadRedList("")
+    shortRedList <-fishRedListFrame[fishRedListFrame$name %in% summaryData$SciName,]
     
     # Finished loading data
     removeModal()
@@ -57,6 +59,8 @@ shinyServer(function(input, output, session) {
     StatusFrame <- LoadConservationFrame("conservationData.rds")
     StatusForList <- unique(StatusFrame[order(StatusFrame$statusLonger),c("statusLonger")])
     summaryData <- LoadSummaryData("summaryData.rds")
+    fishRedListFrame<-LoadRedList("fishRedList.rds")
+    shortRedList <-fishRedListFrame[fishRedListFrame$name %in% summaryData$SciName,]
   }
   
   DefaultText <- "(Any)"

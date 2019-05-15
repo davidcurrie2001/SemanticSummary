@@ -25,4 +25,6 @@ saveRDS(StatusFrame, file = "conservationData.rds")
 summaryData <- LoadSummaryData("")
 saveRDS(summaryData, file = "summaryData.rds")
 
+fishRedListFrame<-LoadRedList("")
+saveRDS(fishRedListFrame, file = "fishRedList.rds" )
 

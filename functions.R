@@ -307,6 +307,49 @@ LoadConservationFrame<- function(fileName){
   
 }
 
+LoadRedList <-function(fileName){
+  
+  # Try reading from an RDS file if a filename is given
+  if (fileName!= ""){
+    
+    output<-readRDS(file = fileName)
+    
+  }
+  # else load from csv
+  else {
+  
+    redList <-read.csv(file="European_Red_List_2017_December_csv/European_Red_List_2017_December.csv", header=TRUE, sep=",")
+    colnames(redList)[1]<-"speciesGroup"
+    output <- redList[as.character(redList$speciesGroup) %in% c("Freshwater_Fishes", "Marine_Fishes") ,]
+    output$name <- paste(output$taxonomicRankGenus,output$taxonomicRankSpecies)
+    
+    output$status <- as.character(output$europeanRegionalRedListCategory)
+    
+    output$status<-toupper(output$status)
+    output$statusLonger<-output$status
+    output[output$status=='EX' & !is.na(output$status),'statusLonger']<-'01) EX Extinct'
+    output[output$status=='PE' & !is.na(output$status),'statusLonger']<-'02) PE Probably extinct'
+    output[output$status=='EW'& !is.na(output$status),'statusLonger']<-'03) EW Extinct in the wild'
+    output[output$status=='PEW' & !is.na(output$status),'statusLonger']<-'04) PEW Probably extinct in the wild'
+    output[output$status=='CR' & !is.na(output$status),'statusLonger']<-'05) CR Critically Endangered'
+    output[output$status=='EN' & !is.na(output$status),'statusLonger']<-'06) EN Endangered'
+    output[output$status=='VU' & !is.na(output$status),'statusLonger']<-'07) VU Vulnerable'
+    output[output$status=='NT'& !is.na(output$status),'statusLonger']<-'08) NT Near Threatened'
+    output[output$status=='LR/CD'& !is.na(output$status),'statusLonger']<-'09) LR/CD Lower Risk (Conservation Dependent)'
+    output[output$status=='LR/NT'& !is.na(output$status),'statusLonger']<-'10) LR/NT Lower Risk (Near Threatened)'
+    output[output$status=='LC'& !is.na(output$status),'statusLonger']<-'11) LC Least Concern'
+    output[output$status=='DD'& !is.na(output$status),'statusLonger']<-'12) DD Data deficient'
+    output[output$status=='NE'& !is.na(output$status),'statusLonger']<-'13) NE Not evaluated'
+    output[output$status=='NR'& !is.na(output$status),'statusLonger']<-'14) NR Not recognized'
+    
+    
+  }
+  
+  
+  output
+  
+}
+
 
 LoadSummaryData <-function(fileName){
   
