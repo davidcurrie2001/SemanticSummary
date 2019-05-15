@@ -28,7 +28,7 @@ shinyUI(
             selectInput("WGSelect", "Select an ICES WG:",choices="(Any)", selected = "(Any)"),
             selectInput("AreaSelect", "Select an area:",choices="(Any)", selected = "(Any)"),
             selectInput("GearSelect", "Select a gear:",choices="(Any)", selected = "(Any)"),
-            selectInput("StatusSelect", "Select a conservation status:",choices="(Any)", selected = "(Any)")
+            selectInput("StatusSelect", "Select an IUCN European Red List status:",choices="(Any)", selected = "(Any)")
             ),
   
     
@@ -38,6 +38,12 @@ shinyUI(
             htmlOutput("speciesdash"),
             htmlOutput("thumbnail"),
             htmlOutput("abstract"),
+            htmlOutput("redListStatus"),
+            htmlOutput("redListRationale"),
+            conditionalPanel(
+              condition = "input.SpeciesSelect != '(Any)'",
+              actionButton("More", "View text in new window")
+            ),
             plotlyOutput('SummaryPlot'),
             dataTableOutput('StockList'),
             dataTableOutput('SummaryDataTable')

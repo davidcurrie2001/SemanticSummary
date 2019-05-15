@@ -19,8 +19,9 @@ shinyServer(function(input, output, session) {
 
   # IMPORTANT: Change this value to "true" if you want to load from a SPARQL end-point (define the address in functions.R)
   useLiveData<-"false"
+  
 
-  output$About <- renderText({"This app displys a semantically-enabled summary of the Marine Institute's commercial fishery sampling data.  The source code can be found at <a href='https://github.com/davidcurrie2001/SemanticSummary' target='_blank'>davidcurrie2001/SemanticSummary</a>."})
+  output$About <- renderText({"This app displys a semantically-enabled summary of the Marine Institute's commercial fishery sampling data.  The source code can be found at <a href='https://github.com/davidcurrie2001/SemanticSummary' target='_blank'>davidcurrie2001/SemanticSummary</a>.  <br/><br/>IUCN Red List data is provided by the EU Directorate-General for Environment (DG ENV) and the International Union for Conservation of Nature (IUCN) and remains their copyright (<a href='https://www.eea.europa.eu/legal/copyright' target='_blank'>https://www.eea.europa.eu/legal/copyright</a>).  More information can be found at <a href='http://ec.europa.eu/environment/nature/conservation/species/redlist/index_en.htm' target='_blank'>http://ec.europa.eu/environment/nature/conservation/species/redlist/index_en.htm</a>."})
   
   # Load our data first
 
@@ -83,8 +84,12 @@ shinyServer(function(input, output, session) {
       currentData<-currentData[currentData$div %in% SelectedAreasFromFrame$area,]
     }
     if(selectedStatus!=DefaultText){
-      SelectedSpeciesFromFrame<-StatusFrame[StatusFrame$statusLonger==selectedStatus,]
-      currentData<-currentData[currentData$species %in% SelectedSpeciesFromFrame$species,]
+      #SelectedSpeciesFromFrame<-StatusFrame[StatusFrame$statusLonger==selectedStatus,]
+      #currentData<-currentData[currentData$species %in% SelectedSpeciesFromFrame$species,]
+      SelectedSpeciesFromFrame<-shortRedList[shortRedList$statusLonger==selectedStatus,]
+      # need to handle NAs
+      SelectedSpeciesFromFrame<-na.omit(SelectedSpeciesFromFrame)
+      currentData<-currentData[currentData$SciName %in% SelectedSpeciesFromFrame$name,]
     }
     if (selectedWG != DefaultText){
       # Need to handle NA values
@@ -98,6 +103,16 @@ shinyServer(function(input, output, session) {
     }
     
     currentData
+    
+  }
+  
+  # Remove some rubbish from text - needs to be done in this file because the special characters get lost when using "source"
+  cleanString <- function(myText){
+    
+    output <- myText
+    output<- gsub("Â","",output)
+    output<- gsub("â€“","",output)
+    output<- gsub("â","",output)
     
   }
   
@@ -127,8 +142,9 @@ shinyServer(function(input, output, session) {
       divs <- unique(currentData$div)
       newAreaList <- sort(unique(AreaFrame[AreaFrame$area %in% divs,"higherAreaTrimmed"]))
       
-      species <- unique(currentData$species)
-      newStatusList <- sort(StatusFrame[StatusFrame$species %in% species,"statusLonger"])
+      #species <- unique(currentData$species)
+      #newStatusList <- sort(StatusFrame[StatusFrame$species %in% species,"statusLonger"])
+      newStatusList <- sort(unique(shortRedList[shortRedList$name %in% currentData$SciName,"statusLonger"]))
       
       stockData <- stockFrame[stockFrame$stock %in% currentData$stock,]
       newWGList <- sort(unique(trimIRI(stockData$wg)))
@@ -304,33 +320,9 @@ shinyServer(function(input, output, session) {
     
     selectedSpecies <- input$SpeciesSelect
     
-    outputText <- ""
+    outputText <- formatDBPediaAbstract(selectedSpecies, speciesInfoFrame, TRUE)
     
-    if(selectedSpecies != DefaultText && selectedSpecies != ""){
-      
-      selectedSpecies <- speciesInfoFrame[speciesInfoFrame$CommonName==input$SpeciesSelect,]
-      if (length(selectedSpecies)>0){
-        
-        # Get the DPPedia abstract
-        outputText <- selectedSpecies$Abstract
-        
-        # Get the DBPedia link
-        myLink <- selectedSpecies$origPage
-        myLink <- substring(myLink,2)
-        myLink <- substring(myLink,1,nchar(myLink)-1)
-        myLink<- paste('<a href="',myLink,'" target="_blank">',myLink,'</a>',sep='')
-        
-        outputText <- paste(selectedSpecies$Abstract,"<br/><b>Source:</b> ",myLink)
-        
-      }
-      
-      
-      myLink <- selectedSpecies$page
-      myLink <- substring(myLink,2)
-      myLink <- substring(myLink,1,nchar(myLink)-1)
-      
-
-    } 
+    outputText <- paste(outputText,"<br/><br/>",sep="")
     
     outputText
     
@@ -341,20 +333,12 @@ shinyServer(function(input, output, session) {
     
     selectedSpecies <- input$SpeciesSelect
     
-    outputText <- ""
+    outputText <- formatDBPediaImage(selectedSpecies, speciesInfoFrame)
     
-    if(selectedSpecies != DefaultText && selectedSpecies != ""){
+    if (outputText!= "") {
+      outputText <- c('<img src="',outputText,'">')
       
-      selectedSpecies <- speciesInfoFrame[speciesInfoFrame$CommonName==input$SpeciesSelect,]
-      if (length(selectedSpecies)>0){
-        outputImage <- selectedSpecies$image
-        # need to remove the first and last characters
-        outputImage <- substring(outputImage,2)
-        outputImage <- substring(outputImage,1,nchar(outputImage)-1)
-        outputText <- c('<img src="',outputImage,'">')
-      }
-      
-    } 
+    }
     
     outputText
     
@@ -369,7 +353,7 @@ shinyServer(function(input, output, session) {
 
     if(selectedSpecies != DefaultText && selectedSpecies != ""){
       
-      myTitle <- input$SpeciesSelect
+      myTitle <- selectedSpecies
 
       outputText<- paste('<h2>',myTitle,'</h2>',sep='')
 
@@ -379,6 +363,7 @@ shinyServer(function(input, output, session) {
     
   })
   
+  # Get the Species Dashboard link
   output$speciesdash <- renderText({
     
     selectedSpecies <- input$SpeciesSelect
@@ -401,6 +386,80 @@ shinyServer(function(input, output, session) {
     } 
     
     outputText
+    
+  })
+  
+  
+  # try and get the Red List status
+  output$redListStatus <- renderText({
+    
+    selectedSpecies <- input$SpeciesSelect
+    
+    outputText <- formatRedListStatus(selectedSpecies,summaryData,shortRedList)
+    
+    outputText
+    
+  })
+  
+  # try and get the Red List rationale
+  output$redListRationale <- renderText({
+    
+    selectedSpecies <- input$SpeciesSelect
+    
+    outputText <- formatRedListRationale(selectedSpecies,summaryData,shortRedList, TRUE)
+
+    outputText <- cleanString(outputText)
+    
+    outputText
+    
+  })
+  
+
+  
+  
+  # Handle the "More" button
+  observeEvent(input$More, {
+    
+    selectedSpecies <- input$SpeciesSelect
+    
+    modalBody <- ""
+    myTitle <- ""
+    myAbstract <-""
+    myImage <- ""
+    myRedListValue <- ""
+    myRedListRationale <- ""
+    
+    
+    if(selectedSpecies != DefaultText && selectedSpecies != ""){
+      
+      # Title
+      myTitle <- selectedSpecies
+      myAbstract <- formatDBPediaAbstract(selectedSpecies, speciesInfoFrame, FALSE)
+      myImage <- formatDBPediaImage(selectedSpecies, speciesInfoFrame)
+      myRedListValue <- formatRedListStatus(selectedSpecies,summaryData, shortRedList)
+      myRedListRationale <- formatRedListRationale(selectedSpecies,summaryData,shortRedList, FALSE)
+      myRedListRationale<- cleanString(myRedListRationale)
+      
+
+      if (myTitle != ""){
+        modalBody<- paste(modalBody,'<h2>',myTitle,'</h2></br></br>',sep='')
+      }
+      if (myImage != ""){
+        modalBody<- paste(modalBody,'<img src="',myImage,'"></br></br>',sep='')
+      }
+      if (myAbstract != ""){
+        modalBody<- paste(modalBody,myAbstract,'</br></br>',sep='')
+      }
+      if (myRedListValue != ""){
+        modalBody<- paste(modalBody,myRedListValue,'</br></br>',sep='')
+      }
+      if (myRedListRationale != ""){
+        modalBody<- paste(modalBody,myRedListRationale,'</br></br>',sep='')
+      }
+
+    }
+
+    showModal(modalDialog( HTML(modalBody),title="Species information"))
     
   })
   

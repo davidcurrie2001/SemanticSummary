@@ -328,19 +328,15 @@ LoadRedList <-function(fileName){
     output$status<-toupper(output$status)
     output$statusLonger<-output$status
     output[output$status=='EX' & !is.na(output$status),'statusLonger']<-'01) EX Extinct'
-    output[output$status=='PE' & !is.na(output$status),'statusLonger']<-'02) PE Probably extinct'
-    output[output$status=='EW'& !is.na(output$status),'statusLonger']<-'03) EW Extinct in the wild'
-    output[output$status=='PEW' & !is.na(output$status),'statusLonger']<-'04) PEW Probably extinct in the wild'
-    output[output$status=='CR' & !is.na(output$status),'statusLonger']<-'05) CR Critically Endangered'
-    output[output$status=='EN' & !is.na(output$status),'statusLonger']<-'06) EN Endangered'
-    output[output$status=='VU' & !is.na(output$status),'statusLonger']<-'07) VU Vulnerable'
-    output[output$status=='NT'& !is.na(output$status),'statusLonger']<-'08) NT Near Threatened'
-    output[output$status=='LR/CD'& !is.na(output$status),'statusLonger']<-'09) LR/CD Lower Risk (Conservation Dependent)'
-    output[output$status=='LR/NT'& !is.na(output$status),'statusLonger']<-'10) LR/NT Lower Risk (Near Threatened)'
-    output[output$status=='LC'& !is.na(output$status),'statusLonger']<-'11) LC Least Concern'
-    output[output$status=='DD'& !is.na(output$status),'statusLonger']<-'12) DD Data deficient'
-    output[output$status=='NE'& !is.na(output$status),'statusLonger']<-'13) NE Not evaluated'
-    output[output$status=='NR'& !is.na(output$status),'statusLonger']<-'14) NR Not recognized'
+    output[output$status=='EW'& !is.na(output$status),'statusLonger']<-'02) EW Extinct in the wild'
+    output[output$status=='RE' & !is.na(output$status),'statusLonger']<-'03) RE Regionally Extinct'
+    output[output$status=='CR' & !is.na(output$status),'statusLonger']<-'04) CR Critically Endangered'
+    output[output$status=='EN' & !is.na(output$status),'statusLonger']<-'05) EN Endangered'
+    output[output$status=='VU' & !is.na(output$status),'statusLonger']<-'06) VU Vulnerable'
+    output[output$status=='NT'& !is.na(output$status),'statusLonger']<-'07) NT Near Threatened'
+    output[output$status=='LC'& !is.na(output$status),'statusLonger']<-'08) LC Least Concern'
+    output[output$status=='DD'& !is.na(output$status),'statusLonger']<-'09) DD Data deficient'
+
     
     
   }
@@ -404,12 +400,131 @@ LoadSummaryData <-function(fileName){
   output
 }
 
-# Read the summary data from an R data file to speed things up
-#LoadSummaryDataFromFile<-function(fileName){
-#  
-#  output<-readRDS(file = fileName)
-#  
-#}
+# get the DBpedia abstract text
+formatDBPediaAbstract <- function(selectedSpecies, speciesInfoFrame, short=FALSE){
+  
+  output <- ""
+  selectedSpeciesFrame <- speciesInfoFrame[speciesInfoFrame$CommonName==selectedSpecies,]
+  
+  if (length(selectedSpeciesFrame)>0 && nrow(selectedSpeciesFrame)>0){
+    if ( !is.na(selectedSpeciesFrame$Abstract) ) {
+      
+      output <- selectedSpeciesFrame$Abstract 
+      
+      # truncate if required
+      if (short){
+        abtstractLimit <- 500
+        if (nchar(output)> abtstractLimit){
+          output <- substr(output,1,abtstractLimit)
+          output <- paste(output,"...(continues)", sep="")
+        }
+      }
+      
+      # append the reference link
+      if ( !is.na(selectedSpeciesFrame$origPage) ) {
+        myLink <- selectedSpeciesFrame$origPage
+        myLink <- substring(myLink,2)
+        myLink <- substring(myLink,1,nchar(myLink)-1)
+        myLink<- paste('<a href="',myLink,'" target="_blank">',myLink,'</a>',sep='')
+        output <- paste(output,"<br/><b>Source:</b> ",myLink)
+        
+      }
+      
+      
+    }
+  }
+  
+  # Default to blank text if we don't get a value
+  if (length(output)==0){
+    output <- ""
+  }
+  
+  output
+}
+
+# get the DBpedia image
+formatDBPediaImage <- function(selectedSpecies, speciesInfoFrame){
+  
+  output <- ""
+  selectedSpeciesFrame <- speciesInfoFrame[speciesInfoFrame$CommonName==selectedSpecies,]
+  
+  if (length(selectedSpeciesFrame)>0 && nrow(selectedSpeciesFrame)>0){
+    if ( !is.na(selectedSpeciesFrame$image) ) {
+      myImage <- selectedSpeciesFrame$image
+      # need to remove the first and last characters
+      myImage <- substring(myImage,2)
+      myImage <- substring(myImage,1,nchar(myImage)-1)
+      output <- myImage
+    }
+  }
+  
+  # Default to blank text if we don't get a value
+  if (length(output)==0){
+    output <- ""
+  }
+  
+  output
+}
+
+# get the Red List status 
+formatRedListStatus <- function(selectedSpecies,summaryData,shortRedList){
+  
+  output <- ""
+  selectedSpeciesName <- unique(summaryData[summaryData$CommonName==selectedSpecies & !is.na(summaryData$CommonName),"SciName"])
+  if (length(selectedSpeciesName)>0){
+    output <- shortRedList[shortRedList$name==selectedSpeciesName,"statusLonger"]
+    
+    if (length(output) >0){
+      output <- paste("<b>IUCN European Red List Status:</b>",output)
+    }
+    
+  }
+  
+  # Default to blank text if we don't get a value
+  if (length(output)==0){
+    output <- ""
+  }
+  
+  output
+}
+
+# get the Red List rationale
+formatRedListRationale <- function(selectedSpecies,summaryData,shortRedList, short=FALSE){
+  
+  output <- ""
+  selectedSpeciesName <- unique(summaryData[summaryData$CommonName==selectedSpecies & !is.na(summaryData$CommonName),"SciName"])
+  if (length(selectedSpeciesName)>0){
+    output <- shortRedList[shortRedList$name==selectedSpeciesName,"redListCategoryRationale"]
+    # Remove some rubbish from the text
+    output<- gsub("Â","",output)
+    
+    # if we want to truncate the text
+    if (short){
+      charLimit <- 500
+    
+      if (length(output) >0 && nchar(output)> charLimit){
+        
+        output <- substr(output,1,charLimit)
+        output <- paste(output,"...(continues)", sep="")
+        
+      }
+    }
+    
+    if (length(output) >0){
+      output <- paste("<b>IUCN European Red List rationale:</b>",output)
+    }
+    
+  }
+  
+  # Default to blank text if we don't get a value
+  if (length(output)==0){
+    output <- ""
+  }
+  
+  output
+}
+
+
 
 
 
