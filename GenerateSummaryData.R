@@ -1,6 +1,10 @@
 library(SPARQL)
 library(plotly)
 
+library(rredlist)
+library(jsonlite)
+library(RCurl)
+
 # My functions are stored in this file to make the sevrer file tidier and easier to read
 source("functions.R")
 
@@ -27,5 +31,14 @@ saveRDS(summaryData, file = "summaryData.rds")
 
 fishRedListFrame<-LoadRedList("")
 saveRDS(fishRedListFrame, file = "fishRedList.rds" )
+
+# TODO remove once sorted
+
+summaryData <- LoadSummaryData("summaryData.rds")
+speciesToCheck <- sort(unique(summaryData$SciName))
+
+apiKey <- readRDS(file = "apiKey.rds")
+result <- lapply(speciesToCheck[c(1:10)], getRedListAPIDataForSpecies)
+
 
                       

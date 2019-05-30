@@ -346,6 +346,65 @@ LoadRedList <-function(fileName){
   
 }
 
+getRedListAPIDataForSpecies <- function(sciName){
+  
+
+  returnValue <- NA
+  
+  # Get the entry details
+  entry <- rl_search(key = apiKey, name = sciName, region='europe')
+  
+  # If there is an entry for this species
+  if (length(entry)>0) {
+    
+    returnValue <- entry
+    
+    # Get the narrative details
+    narrative <- rl_narrative(key = apiKey, name = sciName, region='europe')
+    
+    # rename the entries to avoid confusion later
+    names(narrative)<-paste("narrative_",names(narrative),sep="")
+    
+    returnValue <- c(returnValue, narrative)
+    
+    # Get the web site link (no rredlist finction for this...)
+    RedListAPIURL <- 'https://apiv3.iucnredlist.org/api/v3/'
+    APIfunction <- 'weblink/'
+    speciesNameEncoded <- URLencode(sciName, reserved=TRUE)  
+    weblink <- fromJSON(getURL(paste(RedListAPIURL,APIfunction,speciesNameEncoded, sep = "")))
+    
+    # rename the entries to avoid confusion later
+    names(weblink)<-paste("weblink_",names(weblink),sep="")
+    
+    returnValue <- c(returnValue, weblink)
+    
+    if (length(returnValue$result$category) == 0){
+      category <- ""
+    } else {
+      category <- returnValue$result$category
+    }
+    
+    if (length(returnValue$narrative_result$rationale) == 0){
+      rationale <- ""
+    } else {
+      rationale <- returnValue$narrative_result$rationale
+    }
+    
+    if (length(returnValue$weblink_value) == 0){
+      myURL <- ""
+    } else {
+      myURL <- returnValue$weblink_value
+    }
+    
+    returnValue <- c(returnValue$name, category, rationale, myURL)
+
+  } 
+  
+  returnValue
+  
+  
+}
+
 
 LoadSummaryData <-function(fileName){
   
