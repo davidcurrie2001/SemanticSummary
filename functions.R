@@ -349,7 +349,7 @@ LoadRedList <-function(fileName){
 getRedListAPIDataForSpecies <- function(sciName){
   
 
-  returnValue <- NA
+  output <- NA
   
   # Get the entry details
   entry <- rl_search(key = apiKey, name = sciName, region='europe')
@@ -357,7 +357,7 @@ getRedListAPIDataForSpecies <- function(sciName){
   # If there is an entry for this species
   if (length(entry)>0) {
     
-    returnValue <- entry
+    #returnValue <- entry
     
     # Get the narrative details
     narrative <- rl_narrative(key = apiKey, name = sciName, region='europe')
@@ -365,7 +365,7 @@ getRedListAPIDataForSpecies <- function(sciName){
     # rename the entries to avoid confusion later
     names(narrative)<-paste("narrative_",names(narrative),sep="")
     
-    returnValue <- c(returnValue, narrative)
+    #returnValue <- c(returnValue, narrative)
     
     # Get the web site link (no rredlist finction for this...)
     RedListAPIURL <- 'https://apiv3.iucnredlist.org/api/v3/'
@@ -376,31 +376,50 @@ getRedListAPIDataForSpecies <- function(sciName){
     # rename the entries to avoid confusion later
     names(weblink)<-paste("weblink_",names(weblink),sep="")
     
-    returnValue <- c(returnValue, weblink)
+    #returnValue <- c(returnValue, weblink)
     
-    if (length(returnValue$result$category) == 0){
+    if (length(entry$result$category) == 0){
       category <- ""
     } else {
-      category <- returnValue$result$category
+      category <- entry$result$category
     }
     
-    if (length(returnValue$narrative_result$rationale) == 0){
+    if (length(entry$result$assessor) == 0){
+      assessor <- ""
+    } else {
+      assessor <- entry$result$assessor
+    }
+    
+    if (length(narrative$narrative_result$rationale) == 0){
       rationale <- ""
     } else {
-      rationale <- returnValue$narrative_result$rationale
+      rationale <- narrative$narrative_result$rationale
     }
     
-    if (length(returnValue$weblink_value) == 0){
+    if (length(weblink$weblink_value) == 0){
       myURL <- ""
     } else {
-      myURL <- returnValue$weblink_value
+      myURL <- weblink$weblink_value
     }
     
-    returnValue <- c(returnValue$name, category, rationale, myURL)
+    output <- data.frame(name = entry$name, status = category, assessor = assessor, rationale = rationale, URL = myURL, stringsAsFactors = FALSE)
+    
+    output$statusLonger<-output$status
+    output[output$status=='EX' & !is.na(output$status),'statusLonger']<-'01) EX Extinct'
+    output[output$status=='EW'& !is.na(output$status),'statusLonger']<-'02) EW Extinct in the wild'
+    output[output$status=='RE' & !is.na(output$status),'statusLonger']<-'03) RE Regionally Extinct'
+    output[output$status=='CR' & !is.na(output$status),'statusLonger']<-'04) CR Critically Endangered'
+    output[output$status=='EN' & !is.na(output$status),'statusLonger']<-'05) EN Endangered'
+    output[output$status=='VU' & !is.na(output$status),'statusLonger']<-'06) VU Vulnerable'
+    output[output$status=='NT'& !is.na(output$status),'statusLonger']<-'07) NT Near Threatened'
+    output[output$status=='LC'& !is.na(output$status),'statusLonger']<-'08) LC Least Concern'
+    output[output$status=='DD'& !is.na(output$status),'statusLonger']<-'09) DD Data deficient'
+    
+
 
   } 
   
-  returnValue
+  output
   
   
 }

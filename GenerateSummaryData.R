@@ -4,6 +4,7 @@ library(plotly)
 library(rredlist)
 library(jsonlite)
 library(RCurl)
+library(data.table)
 
 # My functions are stored in this file to make the sevrer file tidier and easier to read
 source("functions.R")
@@ -40,5 +41,8 @@ speciesToCheck <- sort(unique(summaryData$SciName))
 apiKey <- readRDS(file = "apiKey.rds")
 result <- lapply(speciesToCheck[c(1:10)], getRedListAPIDataForSpecies)
 
+result1 <- rbindlist(result)
+
+View(result1)
 
                       
