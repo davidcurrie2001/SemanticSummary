@@ -38,11 +38,11 @@ saveRDS(fishRedListFrame, file = "fishRedList.rds" )
 summaryData <- LoadSummaryData("summaryData.rds")
 speciesToCheck <- sort(unique(summaryData$SciName))
 
-apiKey <- readRDS(file = "apiKey.rds")
-result <- lapply(speciesToCheck[c(1:10)], getRedListAPIDataForSpecies)
+#apiKey <- readRDS(file = "apiKey.rds")
+#result <- lapply(speciesToCheck[c(1:5)], getRedListAPIDataForSpecies)
 
-result1 <- rbindlist(result)
+result <- LoadRedListFromAPI(speciesToCheck)
 
-View(result1)
+View(result)
 
                       

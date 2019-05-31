@@ -346,10 +346,35 @@ LoadRedList <-function(fileName){
   
 }
 
-getRedListAPIDataForSpecies <- function(sciName){
+LoadRedListFromAPI <- function(fileName, speciesList){
   
+  
+  # Try reading from an RDS file if a filename is given
+  if (fileName!= ""){
+    
+    output<-readRDS(file = fileName)
+    
+  }
+  # else query the Red List API
+  else 
+  {
+  
+    result <- lapply(speciesList, getRedListAPIDataForSpecies)
+  
+    output <- rbindlist(result)
+  }
+  
+  output
+  
+}
 
+getRedListAPIDataForSpecies <- function(sciName){
+
+  #print(sciName)
   output <- NA
+  
+  # Load the api key
+  apiKey <- readRDS(file = "apiKey.rds")
   
   # Get the entry details
   entry <- rl_search(key = apiKey, name = sciName, region='europe')
@@ -365,7 +390,11 @@ getRedListAPIDataForSpecies <- function(sciName){
     # rename the entries to avoid confusion later
     names(narrative)<-paste("narrative_",names(narrative),sep="")
     
-    #returnValue <- c(returnValue, narrative)
+    # get the citation
+    citation <- rl_sp_citation(key = apiKey, name = sciName, region='europe')
+    
+    # rename the entries to avoid confusion later
+    names(citation)<-paste("citation_",names(citation),sep="")
     
     # Get the web site link (no rredlist finction for this...)
     RedListAPIURL <- 'https://apiv3.iucnredlist.org/api/v3/'
@@ -376,8 +405,7 @@ getRedListAPIDataForSpecies <- function(sciName){
     # rename the entries to avoid confusion later
     names(weblink)<-paste("weblink_",names(weblink),sep="")
     
-    #returnValue <- c(returnValue, weblink)
-    
+
     if (length(entry$result$category) == 0){
       category <- ""
     } else {
@@ -396,13 +424,19 @@ getRedListAPIDataForSpecies <- function(sciName){
       rationale <- narrative$narrative_result$rationale
     }
     
-    if (length(weblink$weblink_value) == 0){
-      myURL <- ""
+    if (length(citation$citation_result$citation) == 0){
+      myRef <- ""
     } else {
-      myURL <- weblink$weblink_value
+      myRef <- citation$citation_result$citation
     }
     
-    output <- data.frame(name = entry$name, status = category, assessor = assessor, rationale = rationale, URL = myURL, stringsAsFactors = FALSE)
+    if (length(weblink$weblink_rlurl) == 0 || weblink$weblink_rlurl =="0" ){
+      myURL <- ""
+    } else {
+      myURL <- weblink$weblink_rlurl
+    }
+    
+    output <- data.frame(name = sciName, status = category, assessor = assessor, citation=myRef, rationale = rationale, URL = myURL, stringsAsFactors = FALSE)
     
     output$statusLonger<-output$status
     output[output$status=='EX' & !is.na(output$status),'statusLonger']<-'01) EX Extinct'
