@@ -41,8 +41,9 @@ shinyServer(function(input, output, session) {
     StatusFrame <- LoadConservationFrame("")
     StatusForList <- unique(StatusFrame[order(StatusFrame$statusLonger),c("statusLonger")])
     summaryData <- LoadSummaryData("")
-    fishRedListFrame<-LoadRedList("")
-    shortRedList <-fishRedListFrame[fishRedListFrame$name %in% summaryData$SciName,]
+    #fishRedListFrame<-LoadRedList("")
+    #shortRedList <-fishRedListFrame[fishRedListFrame$name %in% summaryData$SciName,]
+    shortRedList <- LoadRedListFromAPI("",unique(summaryData$SciName))
     
     # Finished loading data
     removeModal()
@@ -60,8 +61,9 @@ shinyServer(function(input, output, session) {
     StatusFrame <- LoadConservationFrame("conservationData.rds")
     StatusForList <- unique(StatusFrame[order(StatusFrame$statusLonger),c("statusLonger")])
     summaryData <- LoadSummaryData("summaryData.rds")
-    fishRedListFrame<-LoadRedList("fishRedList.rds")
-    shortRedList <-fishRedListFrame[fishRedListFrame$name %in% summaryData$SciName,]
+    #fishRedListFrame<-LoadRedList("fishRedList.rds")
+    #shortRedList <-fishRedListFrame[fishRedListFrame$name %in% summaryData$SciName,]
+    shortRedList <- LoadRedListFromAPI("RedListAPI.rds",NA)
   }
   
   DefaultText <- "(Any)"
@@ -144,7 +146,11 @@ shinyServer(function(input, output, session) {
       
       #species <- unique(currentData$species)
       #newStatusList <- sort(StatusFrame[StatusFrame$species %in% species,"statusLonger"])
-      newStatusList <- sort(unique(shortRedList[shortRedList$name %in% currentData$SciName,"statusLonger"]))
+      #newStatusList <- sort(unique(shortRedList[shortRedList$name %in% currentData$SciName,"statusLonger"]))
+      newStatusListFrame <- unique(shortRedList[shortRedList$name %in% currentData$SciName,"statusLonger"])
+      newStatusListFrame <- newStatusListFrame[order(newStatusListFrame$statusLonger),]
+      newStatusListFrame <- newStatusListFrame[newStatusListFrame$statusLonger != "",]
+      newStatusList <- newStatusListFrame$statusLonger
       
       stockData <- stockFrame[stockFrame$stock %in% currentData$stock,]
       newWGList <- sort(unique(trimIRI(stockData$wg)))

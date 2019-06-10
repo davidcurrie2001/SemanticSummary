@@ -24,25 +24,20 @@ saveRDS(AreaFrame, file = "areaData.rds")
 GearFrame <- LoadGearFrame("")
 saveRDS(GearFrame, file = "gearData.rds")
 
-StatusFrame <- LoadConservationFrame("")
-saveRDS(StatusFrame, file = "conservationData.rds")
+#StatusFrame <- LoadConservationFrame("")
+#saveRDS(StatusFrame, file = "conservationData.rds")
 
 summaryData <- LoadSummaryData("")
 saveRDS(summaryData, file = "summaryData.rds")
 
-fishRedListFrame<-LoadRedList("")
-saveRDS(fishRedListFrame, file = "fishRedList.rds" )
-
-# TODO remove once sorted
+#fishRedListFrame<-LoadRedList("")
+#saveRDS(fishRedListFrame, file = "fishRedList.rds" )
 
 summaryData <- LoadSummaryData("summaryData.rds")
 speciesToCheck <- sort(unique(summaryData$SciName))
+redList <- LoadRedListFromAPI("",speciesToCheck)
+saveRDS(redList, file = "RedListAPI.rds" )
 
-#apiKey <- readRDS(file = "apiKey.rds")
-#result <- lapply(speciesToCheck[c(1:5)], getRedListAPIDataForSpecies)
 
-result <- LoadRedListFromAPI(speciesToCheck)
-
-View(result)
 
                       

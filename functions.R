@@ -584,10 +584,17 @@ formatRedListStatus <- function(selectedSpecies,summaryData,shortRedList){
   output <- ""
   selectedSpeciesName <- unique(summaryData[summaryData$CommonName==selectedSpecies & !is.na(summaryData$CommonName),"SciName"])
   if (length(selectedSpeciesName)>0){
-    output <- shortRedList[shortRedList$name==selectedSpeciesName,"statusLonger"]
     
-    if (length(output) >0){
-      output <- paste("<b>IUCN European Red List Status:</b>",output)
+    myLink <- shortRedList[shortRedList$name==selectedSpeciesName,"URL"]
+    
+    if (length(myLink) >0){
+      output <- paste('<b>IUCN Red List URL:</b><a href="',myLink,'" target="_blank">',myLink,'</a></br>',sep='')
+    }
+    
+    myStatus <- shortRedList[shortRedList$name==selectedSpeciesName,"statusLonger"]
+    
+    if (length(myStatus) >0){
+      output <- paste(output,"<b>IUCN European Red List Status:</b>",myStatus)
     }
     
   }
@@ -606,9 +613,17 @@ formatRedListRationale <- function(selectedSpecies,summaryData,shortRedList, sho
   output <- ""
   selectedSpeciesName <- unique(summaryData[summaryData$CommonName==selectedSpecies & !is.na(summaryData$CommonName),"SciName"])
   if (length(selectedSpeciesName)>0){
-    output <- shortRedList[shortRedList$name==selectedSpeciesName,"redListCategoryRationale"]
+    #output <- shortRedList[shortRedList$name==selectedSpeciesName,"redListCategoryRationale"]
+    output <- shortRedList[shortRedList$name==selectedSpeciesName,"rationale"]
+    
+    citation <- shortRedList[shortRedList$name==selectedSpeciesName,"citation"]
+    if (length(citation>0)) {
+      output <- paste(output,citation, sep="")
+     
+    }
+    
     # Remove some rubbish from the text
-    output<- gsub("Â","",output)
+    #output<- gsub("Â","",output)
     
     # if we want to truncate the text
     if (short){
